@@ -56,7 +56,7 @@ public class ApiClient {
         this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    public ArrayList<String> get(String uri, MultiValueMap<String, String> params) throws ProvideServicesException
+    public ArrayList<String> get(String uri, String params) throws ProvideServicesException
     {
         return this.call(HttpMethod.GET, uri, params, null);
     }
@@ -65,11 +65,11 @@ public class ApiClient {
         return this.call(HttpMethod.POST, uri, params, null);
     }
 
-    public ArrayList<String> put(String uri, MultiValueMap<String, String> params) throws ProvideServicesException {
+    public ArrayList<String> put(String uri, String params) throws ProvideServicesException {
         return this.call(HttpMethod.PUT, uri, params, null);
     }
 
-    public ArrayList<String> delete(String uri, MultiValueMap<String, String> params) throws ProvideServicesException {
+    public ArrayList<String> delete(String uri, String params) throws ProvideServicesException {
         return this.call(HttpMethod.DELETE, uri, params, null);
     }
 
