@@ -3,6 +3,7 @@ package services.provide.client;
 import io.ipfs.api.IPFS;
 import io.ipfs.api.NamedStreamable;
 import io.ipfs.api.NamedStreamable.ByteArrayWrapper;
+import services.provide.helper.ProvideServicesException;
 
 public class IPFSClient {
 
@@ -28,7 +29,7 @@ public class IPFSClient {
         this.ipfs = new IPFS(host, port.intValue(), this.DEFAULT_VERSION);
     }
 
-    public String add(String filename, byte[] bytes)
+    public String add(String filename, byte[] bytes) throws ProvideServicesException
     {
         String hash = null;
         try {
@@ -36,7 +37,7 @@ public class IPFSClient {
             hash = ipfs.add(file).get(0).hash.toString();
         } catch(Exception e)
         {
-            System.out.println("ERROR: Failed to add file to IPFS; " + e);
+            throw new ProvideServicesException("ERROR: Failed to add file to IPFS; " + e);
         }
 
         return hash;

@@ -1,17 +1,23 @@
 package services.provide.microservices;
 
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.util.MultiValueMap;
 
 import services.provide.client.ApiClient;
 import services.provide.dao.Application;
 import services.provide.dao.Contract;
+import services.provide.helper.ProvideServicesException;
 
 public class Goldmine {
     private static final String DEFAULT_HOST = "goldmine.provide.services";
     private ApiClient client = null;
-
+    private ObjectMapper mapper = null;
 
     public Goldmine init(String token)
     {
@@ -26,6 +32,10 @@ public class Goldmine {
         if (host == null) host = this.DEFAULT_HOST;
 
         this.client = ApiClient.init(schema, host, token);
+
+        // Set ObjectMapper
+        this.mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     public boolean validateToken(String token)
@@ -38,11 +48,6 @@ public class Goldmine {
 
     public Application getApplication(String json) {
         return Application.init(json);
-    }
-
-    public Contract[] getContracts(String json)
-    {
-
     }
 
 
@@ -75,16 +80,49 @@ public class Goldmine {
         return client.delete("connectors/"+connectorId);
     }
 
-    public ArrayList<String> fetchContracts() {
-        return client.get("contracts", null);
+    public Contract[] fetchContracts() throws ProvideServicesException {
+        Contract[] contracts = null;
+        try {
+            ArrayList<String> result = client.get("contracts", null);
+            if (!result.get(0).equals("202")) throw new ProvideServicesException("ERROR: Failed to fetch contracts;");
+            contracts = mapper.readValue(result.get(1), Contract[].class);
+        } catch(Exception e)
+        {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return contracts;
     }
 
-    public ArrayList<String> fetchContractDetails(String contractId) {
-        return client.get("contracts/"+contractId, null);
+    public Contract fetchContractDetails(String contractId) throws ProvideServicesException{
+        Contract contract = null;
+        try {
+            ArrayList<String> result = client.get("contracts/"+contractId, null);
+            if (!result.get(0).equals("202") throw new ProvideServicesException("ERROR: Failed to fetch contract detail;");
+            contract = mapper.readValue(result.get(1), Contract.class);
+        } catch(Exception e)
+        {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+        return contract;
     }
 
-    public ArrayList<String> createContract(MultiValueMap params) {
-        return client.post("contracts", params);
+    public Contract createContract(Contract contract) throws ProvideServicesException {
+        if (contract == null) throw new ProvideServicesException("ERROR: Contract cannot be null; ");
+        Contract createdContract = null;
+        try {
+            Writer jsonWriter = new StringWriter();
+            mapper.writeValue(jsonWriter, contract);
+            jsonWriter.flush();
+            ArrayList<String> result = client.post("contracts", jsonWriter.toString());
+            if (!result.get(0).equals("202")) throw new ProvideServicesException("ERROR: createContract; " + result.get(1));
+            createdContract = mapper.readValue(result.get(1), Contract.class);
+        } catch(Exception e)
+        {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return createdContract;
     }
 
     public ArrayList<String> executeContract(String contractId, MultiValueMap params) {
@@ -172,7 +210,7 @@ public class Goldmine {
     }
 
     public ArrayList<String> fetchOracles(MultiValueMap params) {
-        return client.get("oracles", params)
+        return client.get("oracles", params);
     }
 
     public ArrayList<String> fetchOracleDetails(String oracleId) {

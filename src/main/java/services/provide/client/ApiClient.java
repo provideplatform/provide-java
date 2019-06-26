@@ -21,6 +21,7 @@ import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SigningKeyResolverAdapter;
 import services.provide.helper.CustomResponseErrorHandler;
+import services.provide.helper.ProvideServicesException;
 
 public class ApiClient {
     private static final String DEFAULT_HOST = "api.provide.services";
@@ -55,20 +56,20 @@ public class ApiClient {
         this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    public ArrayList<String> get(String uri, MultiValueMap<String, String> params)
+    public ArrayList<String> get(String uri, MultiValueMap<String, String> params) throws ProvideServicesException
     {
         return this.call(HttpMethod.GET, uri, params, null);
     }
 
-    public ArrayList<String> post(String uri, MultiValueMap<String, String> params) {
+    public ArrayList<String> post(String uri, String params) throws ProvideServicesException {
         return this.call(HttpMethod.POST, uri, params, null);
     }
 
-    public ArrayList<String> put(String uri, MultiValueMap<String, String> params) {
+    public ArrayList<String> put(String uri, MultiValueMap<String, String> params) throws ProvideServicesException {
         return this.call(HttpMethod.PUT, uri, params, null);
     }
 
-    public ArrayList<String> delete(String uri, MultiValueMap<String, String> params) {
+    public ArrayList<String> delete(String uri, MultiValueMap<String, String> params) throws ProvideServicesException {
         return this.call(HttpMethod.DELETE, uri, params, null);
     }
 
@@ -103,7 +104,7 @@ public class ApiClient {
      * @param headers
      * @return
      */
-    private ArrayList<String> call(HttpMethod method, String uri, MultiValueMap<String, String> params, HttpHeaders headers)
+    private ArrayList<String> call(HttpMethod method, String uri, String params, HttpHeaders headers) throws ProvideServicesException
     {
         HttpEntity<String> requestEntity;
         ResponseEntity<String> responseEntity;
@@ -119,7 +120,7 @@ public class ApiClient {
             
             httpMethod = method;
             if (httpMethod == HttpMethod.GET) {
-                uriComponents = UriComponentsBuilder.fromHttpUrl(this.baseUrl+uri).queryParams(params).build();
+                uriComponents = UriComponentsBuilder.fromHttpUrl(this.baseUrl+uri+"/"+params).build(true);
                 requestEntity = new HttpEntity<String>("", httpHeaders);
             } else {
                 uriComponents = UriComponentsBuilder.fromHttpUrl(this.baseUrl+uri).build(true);
@@ -133,7 +134,7 @@ public class ApiClient {
             respBody.add(responseEntity.getBody());
 
         } catch(Exception e) {
-            System.out.println("ERROR: Failed to call provide API; " + e);
+            throw new ProvideServicesException("ERROR: Failed to call provide API; " + e);
         } 
 
         return respBody;
