@@ -11,6 +11,7 @@ import org.springframework.util.MultiValueMap;
 
 import services.provide.client.ApiClient;
 import services.provide.dao.Application;
+import services.provide.dao.Connector;
 import services.provide.dao.Contract;
 import services.provide.helper.ProvideServicesException;
 
@@ -51,40 +52,72 @@ public class Goldmine {
     }
 
 
-    public ArrayList<String> fetchBridges(MultiValueMap params)
+    public ArrayList<String> fetchBridges() throws ProvideServicesException
     {
-        return client.get("bridges", params);
+        return client.get("bridges", null);
     }
 
-    public ArrayList<String> fetchBridgeDetails(String bridgeId) {
+    public ArrayList<String> fetchBridgeDetails(String bridgeId) throws ProvideServicesException {
         return client.get("bridges/"+bridgeId, null);
     }
 
-    public ArrayList<String> createBridge(MultiValueMap params) {
+    public ArrayList<String> createBridge(String params) throws ProvideServicesException {
         return client.post("bridges", params);
     }
 
-    public ArrayList<String> fetchConnectors(MultiValueMap params) {
-        return client.get("connectors", params);
+    public Connector[] fetchConnectors() throws ProvideServicesException{
+        Connector[] connectors = null;
+        try {
+            ArrayList<String> result = client.get("connectors", null);
+            if (!result.get(0).equals(this.DEFAULT_SUCCESS_CODE)) throw new ProvideServicesException("ERROR: Failed to fetch connectors;");
+            connectors = mapper.readValue(result.get(1), Connector[].class);
+        } catch(Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return connectors;
     }
 
-    public ArrayList<String> fetchConnectorDetails(String connectorId) {
-        return client.get("connectors/"+connectorId, null);
+    /**
+     * TODO: Need to follow up on why this does not exist?
+     * public ArrayList<String> fetchConnectorDetails(String connectorId) { return
+     * client.get("connectors/"+connectorId, null); }
+     */
+
+
+    public Connector createConnector(Connector connector) throws ProvideServicesException{
+        if (connector == null) throw new ProvideServicesException("ERROR: create connector value cannot be null;");
+        Connector createdConnector = null;
+        try {
+            Writer jsonWrite = new StringWriter();
+            mapper.writeValue(jsonWrite, connector);
+            jsonWrite.flush();
+            ArrayList<String> result = client.post("connectors", jsonWrite.toString());
+            if (!result.get(0).equals("201")) throw new ProvideServicesException("ERROR: failed to create connector; " + result.get(1));
+            createdConnector = mapper.readValue(result.get(1), Connector.class);
+        } catch(Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return createdConnector;
     }
 
-    public ArrayList<String> createConnector(MultiValueMap params) {
-        return client.post("connectors", params);
-    }
-
-    public ArrayList<String> deleteConnector(String connectorId) {
-        return client.delete("connectors/"+connectorId);
+    public void deleteConnector(String connectorId) throws ProvideServicesException {
+        if (connectorId == null) throw new ProvideServicesException("ERROR: delete connector value cannot be null;");
+        try {
+            ArrayList<String> result = client.delete("connectors/"+connectorId, null);
+            if (!result.get(0).equals("200"))
+        } catch(Exception e)
+        {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
     }
 
     public Contract[] fetchContracts() throws ProvideServicesException {
         Contract[] contracts = null;
         try {
             ArrayList<String> result = client.get("contracts", null);
-            if (!result.get(0).equals("202")) throw new ProvideServicesException("ERROR: Failed to fetch contracts;");
+            if (!result.get(0).equals("200")) throw new ProvideServicesException("ERROR: Failed to fetch contracts;");
             contracts = mapper.readValue(result.get(1), Contract[].class);
         } catch(Exception e)
         {
@@ -98,7 +131,7 @@ public class Goldmine {
         Contract contract = null;
         try {
             ArrayList<String> result = client.get("contracts/"+contractId, null);
-            if (!result.get(0).equals("202") throw new ProvideServicesException("ERROR: Failed to fetch contract detail;");
+            if (!result.get(0).equals("200")) throw new ProvideServicesException("ERROR: Failed to fetch contract detail;");
             contract = mapper.readValue(result.get(1), Contract.class);
         } catch(Exception e)
         {
@@ -115,7 +148,7 @@ public class Goldmine {
             mapper.writeValue(jsonWriter, contract);
             jsonWriter.flush();
             ArrayList<String> result = client.post("contracts", jsonWriter.toString());
-            if (!result.get(0).equals("202")) throw new ProvideServicesException("ERROR: createContract; " + result.get(1));
+            if (!result.get(0).equals("201")) throw new ProvideServicesException("ERROR: createContract; " + result.get(1));
             createdContract = mapper.readValue(result.get(1), Contract.class);
         } catch(Exception e)
         {

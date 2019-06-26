@@ -119,11 +119,11 @@ public class ApiClient {
             httpHeaders = (headers == null ? this.defaultHeaders() : headers);
             
             httpMethod = method;
-            if (httpMethod == HttpMethod.GET) {
-                uriComponents = UriComponentsBuilder.fromHttpUrl(this.baseUrl+uri+"/"+params).build(true);
+            uriComponents = UriComponentsBuilder.fromHttpUrl(this.baseUrl + uri).build(true);
+            if (httpMethod == HttpMethod.GET || httpMethod == HttpMethod.DELETE) {
+                
                 requestEntity = new HttpEntity<String>("", httpHeaders);
             } else {
-                uriComponents = UriComponentsBuilder.fromHttpUrl(this.baseUrl+uri).build(true);
                 mapper.writeValue(jsonWriter, params);
                 jsonWriter.flush();
                 requestEntity = new HttpEntity<String>(jsonWriter.toString(), httpHeaders);
