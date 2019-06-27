@@ -14,6 +14,7 @@ import services.provide.dao.Application;
 import services.provide.dao.Connector;
 import services.provide.dao.Contract;
 import services.provide.dao.Network;
+import services.provide.dao.Transaction;
 import services.provide.helper.ProvideServicesException;
 
 public class Goldmine {
@@ -356,19 +357,38 @@ public class Goldmine {
     public ArrayList<String> createToken(MultiValueMap params) {
         return client.post("tokens",params);
     }
-    */
+    
 
 
     public ArrayList<String> createTransaction(MultiValueMap params) {
         return client.post("transactions",params);
     }
-
-    public ArrayList<String> fetchTransactions(MultiValueMap params) {
-        return client.get("transactions",params);
+    */
+    public Transaction[] fetchTransactions() throws ProvideServicesException {
+        Transaction[] transactions = null;
+        try {
+            ArrayList<String> result = client.get("transactions", null);
+            if (!result.get(0).equals("200"))
+                throw new ProvideServicesException("ERROR: Failed to fetch transactions;");
+            transactions = mapper.readValue(result.get(1), Transaction[].class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+        return transactions;
     }
 
-    public ArrayList<String> fetchTransactionDetails(String txId) {
-        return client.get("transactions/"+txId,null);
+    public Transaction fetchTransactionDetails(String txId) throws ProvideServicesException {
+        if (txId == null) throw new ProvideServicesException("ERROR: fetchTransactionDetails txId cannot be null;");
+        Transaction transaction = null;
+        try {
+            ArrayList<String> result = client.get("transactions/"+txId,null);
+            if (!result.get(0).equals("200"))
+                throw new ProvideServicesException("ERROR: Failed to fetch transaction ; " + txId);
+            transaction = mapper.readValue(result.get(1), Transaction.class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+        return transaction;
     }
 
     public ArrayList<String> fetchWalletBalance(String walletId,String tokenId) {
