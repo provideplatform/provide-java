@@ -14,6 +14,8 @@ import services.provide.dao.Application;
 import services.provide.dao.Bridge;
 import services.provide.dao.Connector;
 import services.provide.dao.Contract;
+import services.provide.dao.ExecuteContractRequest;
+import services.provide.dao.ExecuteContractResponse;
 import services.provide.dao.Network;
 import services.provide.dao.Transaction;
 import services.provide.dao.Wallet;
@@ -138,8 +140,22 @@ public class Goldmine {
         return createdContract;
     }
 
-    public ArrayList<String> executeContract(String contractId, MultiValueMap params) {
-        return client.post("contracts/"+contractId+"/execute", params);
+    public ExecuteContractResponse executeContract(String contractId, ExecuteContractRequest request) throws ProvideServicesException {
+        if (contractId == null) throw new ProvideServicesException("ERROR: executeContract contractId cannot be null;");
+        if (request == null) throw new ProvideServicesException("ERROR: executeContract request cannot be null;");
+        ExecuteContractResponse response = null;
+        try {
+            Writer jsonWriter = new StringWriter();
+            mapper.writeValue(jsonWriter, request);
+            jsonWriter.flush();
+            ArrayList<String> result =  client.post("contracts/"+contractId+"/execute", jsonWriter.toString());
+            if (!result.get(0).equals("202")) throw new ProvideServicesException("ERROR: execute contract failed; " + result.get(1));
+            response = mapper.readValue(result.get(1), ExecuteContractResponse.class);
+        } catch(Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return response;
     }
 
     public Network[] fetchNetworks() throws ProvideServicesException {
