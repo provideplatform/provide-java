@@ -1,5 +1,7 @@
 package services.provide.dao;
 
+import java.util.Map;
+
 public class Network {
     private String id;
     private String created_at;
@@ -14,6 +16,7 @@ public class Network {
     private String sidechain_id;
     private String network_id;
     private String stats;
+    private Map<String, String> config;
 
     public String getId() {
         return id;
@@ -119,13 +122,23 @@ public class Network {
         this.stats = stats;
     }
 
+    public Map<String, String> getConfig() {
+        return config;
+    }
+
+    public void setConfig(Map<String, String> config) {
+        this.config = config;
+    }
+
     @Override
     public String toString() {
         return "Network [application_id=" + application_id + ", chain_id=" + chain_id + ", cloneable=" + cloneable
-                + ", created_at=" + created_at + ", description=" + description + ", enabled=" + enabled + ", id=" + id
-                + ", is_production=" + is_production + ", name=" + name + ", network_id=" + network_id
-                + ", sidechain_id=" + sidechain_id + ", stats=" + stats + ", user_id=" + user_id + "]";
+                + ", config=" + config + ", created_at=" + created_at + ", description=" + description + ", enabled="
+                + enabled + ", id=" + id + ", is_production=" + is_production + ", name=" + name + ", network_id="
+                + network_id + ", sidechain_id=" + sidechain_id + ", stats=" + stats + ", user_id=" + user_id + "]";
     }
+
+    
 
     
 }

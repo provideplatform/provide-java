@@ -11,10 +11,12 @@ import org.springframework.util.MultiValueMap;
 
 import services.provide.client.ApiClient;
 import services.provide.dao.Application;
+import services.provide.dao.Bridge;
 import services.provide.dao.Connector;
 import services.provide.dao.Contract;
 import services.provide.dao.Network;
 import services.provide.dao.Transaction;
+import services.provide.dao.Wallet;
 import services.provide.helper.ProvideServicesException;
 
 public class Goldmine {
@@ -48,24 +50,7 @@ public class Goldmine {
         else
             return false;
     }
-
-    public Application getApplication(String json) {
-        return Application.init(json);
-    }
-
-
-    public ArrayList<String> fetchBridges() throws ProvideServicesException
-    {
-        return client.get("bridges", null);
-    }
-
-    public ArrayList<String> fetchBridgeDetails(String bridgeId) throws ProvideServicesException {
-        return client.get("bridges/"+bridgeId, null);
-    }
-
-    public ArrayList<String> createBridge(String params) throws ProvideServicesException {
-        return client.post("bridges", params);
-    }
+    
 
     public Connector[] fetchConnectors() throws ProvideServicesException{
         Connector[] connectors = null;
@@ -80,14 +65,7 @@ public class Goldmine {
         return connectors;
     }
 
-    /**
-     * TODO: Need to follow up on why this does not exist?
-     * public ArrayList<String> fetchConnectorDetails(String connectorId) { return
-     * client.get("connectors/"+connectorId, null); }
-     */
-
-
-    public Connector createConnector(Connector connector) throws ProvideServicesException{
+     public Connector createConnector(Connector connector) throws ProvideServicesException{
         if (connector == null) throw new ProvideServicesException("ERROR: create connector value cannot be null;");
         Connector createdConnector = null;
         try {
@@ -108,7 +86,7 @@ public class Goldmine {
         if (connectorId == null) throw new ProvideServicesException("ERROR: delete connector value cannot be null;");
         try {
             ArrayList<String> result = client.delete("connectors/"+connectorId, null);
-            if (!result.get(0).equals("202")) throw new ProvideServicesException("ERROR: deleteConnector for id; " + connectorId + "; " + result.get(1));
+            if (!result.get(0).equals("204")) throw new ProvideServicesException("ERROR: deleteConnector for id; " + connectorId + "; " + result.get(1));
         } catch(Exception e)
         {
             throw new ProvideServicesException(e.getLocalizedMessage());
@@ -177,6 +155,9 @@ public class Goldmine {
         return networks;
     }
 
+
+
+
     /*
     * Need to discuss with Kyle if we want to allow this
     public ArrayList<String> createNetwork(MultiValueMap params) {
@@ -191,12 +172,24 @@ public class Goldmine {
     }
     */
 
-    /*
-    * Need to discuss with Kyle what level of detail we would want to expose
-    public ArrayList<String> fetchNetworkDetails(String networkId) {
-        return client.get("networks/"+networkId, null);
+    
+    
+    public Network fetchNetworkDetails(String networkId) throws ProvideServicesException{
+        if (networkId == null)
+            throw new ProvideServicesException("ERROR: fetchNetworkDetails networkId cannot be null; ");
+        Network network = null;
+        try {
+            ArrayList<String> result = client.get("networks/" + networkId, null);
+            if (!result.get(0).equals("200"))
+                throw new ProvideServicesException("ERROR: fetchNetworkDetails; " + result.get(1));
+            network = mapper.readValue(result.get(1), Network.class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return network;
     }
-    */
+    
 
     /*
     * Returns a Page Not Found
@@ -212,12 +205,26 @@ public class Goldmine {
     }
     */
 
-    /*
-    * Need to discuss with Kyle just returns a blank page with HTML not a blank Json Array
-    public ArrayList<String> fetchNetworkBridges(String networkId, MultiValueMap params) {
-        return client.get("networks/"+networkId+"/bridges", params);
+    
+    
+    public Bridge[] fetchNetworkBridges(String networkId) throws ProvideServicesException
+    {
+        if (networkId == null)
+            throw new ProvideServicesException("ERROR: fetchNetworkBridges networkId cannot be null; ");
+        Bridge[] bridges = null;
+        try {
+            ArrayList<String> result = client.get("networks/" + networkId + "/bridges", null);
+            if (!result.get(0).equals("200"))
+                throw new ProvideServicesException("ERROR: fetchNetworkBridges; " + result.get(1));
+            bridges = mapper.readValue(result.get(1), Bridge[].class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return bridges;
+        
     }
-    */
+    
 
     public Connector[] fetchNetworkConnectors(String networkId)  throws ProvideServicesException {
         if (networkId == null) throw new ProvideServicesException("ERROR: fetchNetworkConnectors networkId is null;");
@@ -250,11 +257,11 @@ public class Goldmine {
         return contracts;
     }
 
-    public Contract fetchNetworkContractDetails(String networkId, String contractId) throws ProvideServicesException {
+    public Contract fetchNetworkContract(String networkId, String contractId) throws ProvideServicesException {
         if (networkId == null)
-            throw new ProvideServicesException("ERROR: fetchNetworkContractDetail networkId is null;");
+            throw new ProvideServicesException("ERROR: fetchNetworkContrac networkId is null;");
         if (contractId == null)
-            throw new ProvideServicesException("ERROR: fetchNetworkContractDetail contractId is null;");
+            throw new ProvideServicesException("ERROR: fetchNetworkContract contractId is null;");
         Contract contract = null;
         try {
             ArrayList<String> result = client.get("networks/" + networkId + "/contracts/" + contractId, null);
@@ -267,103 +274,40 @@ public class Goldmine {
         return contract;
     }
 
-    /*
-    * TODO: Discuss with Kyle
-    public ArrayList<String> fetchNetworkOracles(String networkId, MultiValueMap params) {
-        return client.get("networks/"+networkId+"/oracles", params);
-    }
-    */
-
-    // TODO: Have kyle send example of Token Contract?
-    public ArrayList<String> fetchNetworkTokens(String networkId, MultiValueMap params) {
-        return client.get("networks/"+networkId+"/tokens", params);
-    }
-
-    /*
-    * TODO: Does not exist
-    public ArrayList<String> network_transactions(String networkId, MultiValueMap params) {
-        return client.get("networks/"+networkId+"/transactions", params);
-    }
-    */
-
-    /*
-    * TODO: Does not exist
-    public ArrayList<String> fetchNetworkTransactionDetails(String networkId, String transactionId) {
-        return client.get("networks/"+networkId+"/transactions/"+transactionId, null);
-    }
-    */
-
-    /*
-    * TODO: Does not work
-    public ArrayList<String> fetchNetworkStatus(String networkId) {
-        return client.get("networks/"+networkId+"/status", null);
-    }
-    */
-
-    // TODO: Get an example of this from Kyle
-    /*
-    public ArrayList<String> fetchNetworkNodes(String networkId, MultiValueMap params) {
-        return client.get("networks/"+networkId+"/nodes", params);
-    }
-    */
-
-    // TODO: Get an example of this from Kyle
-    /*
-    public ArrayList<String> createNetworkNode(String networkId, MultiValueMap params) {
-        return client.post("networks/"+networkId+"/nodes", params);
-    }
-    */
-
-    /*
-     * TODO: Get an example of this from Kyle public ArrayList<String>
-     * fetchNetworkNodeDetails(String networkId, String nodeId) { return
-     * client.get("networks/"+networkId+"/nodes/"+nodeId, null); }
-     */
-
-    /*
-     * TODO: Get an example of this from Kyle public ArrayList<String>
-     * fetchNetworkNodeLogs(String networkId, String nodeId) { return
-     * client.get("networks/"+networkId+"/nodes/"+nodeId+"/logs", null); }
-     */
-
-    /*
-     * TODO: Get an example of this from Kyle public ArrayList<String>
-     * deleteNetworkNode(String networkId, String nodeId) { return
-     * client.delete("networks/"+networkId+"/nodes/"+nodeId, null); }
-     */
-
-    /*
-     * TODO: Need to discuss with Kyle
-    public ArrayList<String> fetchOracles(MultiValueMap params) {
-        return client.get("oracles", params);
+    public Transaction[] fetchNetworkTransactions(String networkId) throws ProvideServicesException {
+        if (networkId == null)
+            throw new ProvideServicesException("ERROR: fetchNetworkTransactions networkId is null;");
+        Transaction[] transactions = null;
+        try {
+            ArrayList<String> result = client.get("networks/" +networkId+ "/transactions", null);
+            if (!result.get(0).equals("200"))
+                throw new ProvideServicesException("ERROR: Failed to fetchNetworkTransactions;");
+            transactions = mapper.readValue(result.get(1), Transaction[].class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+        return transactions;
     }
 
-    public ArrayList<String> fetchOracleDetails(String oracleId) {
-        return client.get("oracles/"+oracleId,null);
+    public Transaction fetchNetworkTransaction(String networkId, String txId) throws ProvideServicesException {
+        if (networkId == null)
+            throw new ProvideServicesException("ERROR: fetchNetworkTransaction networkId is null;");
+        if (txId == null)
+            throw new ProvideServicesException("ERROR: fetchNetworkTransaction txId is null;");
+        Transaction transaction = null;
+        try {
+            ArrayList<String> result = client.get("networks/" + networkId + "/transactions/" + txId, null);
+            if (!result.get(0).equals("200"))
+                throw new ProvideServicesException("ERROR: Failed to fetchNetworkTransaction; " + result.get(1));
+            transaction = mapper.readValue(result.get(1), Transaction.class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+        return transaction;
     }
 
-    public ArrayList<String> createOracle(MultiValueMap params) {
-        return client.post("oracles",params);
-    }
-
-    public ArrayList<String> fetchTokens(MultiValueMap params) {
-        return client.get("tokens",params);
-    }
-
-    public ArrayList<String> fetchTokenDetails(String tokenId) {
-        return client.get("tokens/"+tokenId,null);
-    }
-
-    public ArrayList<String> createToken(MultiValueMap params) {
-        return client.post("tokens",params);
-    }
-    
-
-
-    public ArrayList<String> createTransaction(MultiValueMap params) {
-        return client.post("transactions",params);
-    }
-    */
+    // TODO: Network Nodes
+ 
     public Transaction[] fetchTransactions() throws ProvideServicesException {
         Transaction[] transactions = null;
         try {
@@ -391,19 +335,108 @@ public class Goldmine {
         return transaction;
     }
 
-    public ArrayList<String> fetchWalletBalance(String walletId,String tokenId) {
-        return client.get("wallets/"+walletId+"/balances/"+tokenId,null);
+    public Bridge[] fetchBridges() throws ProvideServicesException {
+        
+        Bridge[] bridges = null;
+        try {
+            ArrayList<String> result = client.get("bridges", null);
+            if (!result.get(0).equals("200"))
+                throw new ProvideServicesException("ERROR: fetchBridges; " + result.get(1));
+            bridges = mapper.readValue(result.get(1), Bridge[].class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return bridges;
+
     }
 
-    public ArrayList<String> fetchWallets(MultiValueMap params) {
-        return client.get("wallets",null);
+    public Bridge fetchBridge(String bridgeId) throws ProvideServicesException {
+        if (bridgeId == null)
+            throw new ProvideServicesException("ERROR: fetchBridge bridgeId cannot be null; ");
+        Bridge bridge = null;
+        try {
+            ArrayList<String> result = client.get("bridges/"+bridgeId, null);
+            if (!result.get(0).equals("200"))
+                throw new ProvideServicesException("ERROR: fetchBridge; " + result.get(1));
+            bridge = mapper.readValue(result.get(1), Bridge.class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return bridge;
+
     }
 
-    public ArrayList<String> fetchWalletDetails(String walletId) {
-        return client.get("wallets/"+walletId,null);
+    public Bridge createBridges(Bridge bridge) throws ProvideServicesException {
+        if (bridge == null)
+            throw new ProvideServicesException("ERROR: createBridge bridge cannot be null; ");
+        Bridge newBridge = null;
+        try {
+            Writer jsonWriter = new StringWriter();
+            mapper.writeValue(jsonWriter, bridge);
+            jsonWriter.flush();
+            ArrayList<String> result = client.post("bridges", jsonWriter.toString());
+            if (!result.get(0).equals("201"))
+                throw new ProvideServicesException("ERROR: fetchBridges; " + result.get(1));
+            newBridge = mapper.readValue(result.get(1), Bridge.class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return newBridge;
+
     }
 
-    public ArrayList<String> createWallet(MultiValueMap params) {
-        return client.post("wallets",params);
+
+    public Wallet[] fetchWallets() throws ProvideServicesException
+    {
+        Wallet[] wallets = null;
+        try {
+            ArrayList<String> result = client.get("wallets", null);
+            if (!result.get(0).equals("200"))
+                throw new ProvideServicesException("ERROR: fetchWallets; " + result.get(1));
+            wallets = mapper.readValue(result.get(1), Wallet[].class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return wallets;
+    }
+
+    public Wallet fetchWalletBalance(String walletId) throws ProvideServicesException
+    {
+        if (walletId == null)
+            throw new ProvideServicesException("ERROR: fetchWalletDetailBalance walletId cannot be null; ");
+        Wallet wallet = null;
+        try {
+            ArrayList<String> result = client.get("wallets/" + walletId, null);
+            if (!result.get(0).equals("200"))
+                throw new ProvideServicesException("ERROR: fetchWalletDetailBalance; " + result.get(1));
+            wallet = mapper.readValue(result.get(1), Wallet.class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return wallet;
+    }
+
+    public Wallet createWallet(Wallet wallet) throws ProvideServicesException {
+        if (wallet == null)
+            throw new ProvideServicesException("ERROR: createWallet wallet cannot be null; ");
+        Wallet newWallet = null;
+        try {
+            Writer jsonWriter = new StringWriter();
+            mapper.writeValue(jsonWriter, wallet);
+            jsonWriter.flush();
+            ArrayList<String> result = client.post("wallets", jsonWriter.toString());
+            if (!result.get(0).equals("201"))
+                throw new ProvideServicesException("ERROR: createWallet; " + result.get(1));
+            newWallet = mapper.readValue(result.get(1), Wallet.class);
+        } catch (Exception e) {
+            throw new ProvideServicesException(e.getLocalizedMessage());
+        }
+
+        return newWallet;
     }
 }
