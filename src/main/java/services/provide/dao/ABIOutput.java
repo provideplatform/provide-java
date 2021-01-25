@@ -1,13 +1,13 @@
 package services.provide.dao;
 
-public class ABIInputs {
+public class ABIOutput {
     private String name;
     private String type;
 
-    public ABIInputs() {
+    public ABIOutput() {
     }
 
-    public ABIInputs(String name, String type) {
+    public ABIOutput(String name, String type) {
         this.name = name;
         this.type = type;
     }
@@ -30,7 +30,8 @@ public class ABIInputs {
 
     @Override
     public String toString() {
-        return "ABIInputs [name=" + name + ", type=" + type + "]";
+        return "ABIOutputs [name=" + name + ", type=" + type + "]";
     }
 
+    
 }

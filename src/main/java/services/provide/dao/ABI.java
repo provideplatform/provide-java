@@ -4,9 +4,9 @@ import java.util.Arrays;
 
 public class ABI {
     private boolean constant;
-    private ABIInputs[] inputs;
+    private ABIInput[] inputs;
     private String name;
-    private ABIOutputs[] outputs;
+    private ABIOutput[] outputs;
     private boolean payable;
     private String stateMutability;
     private String type;
@@ -22,11 +22,11 @@ public class ABI {
         this.constant = constant;
     }
 
-    public ABIInputs[] getInputs() {
+    public ABIInput[] getInputs() {
         return inputs;
     }
 
-    public void setInputs(ABIInputs[] inputs) {
+    public void setInputs(ABIInput[] inputs) {
         this.inputs = inputs;
     }
 
@@ -38,11 +38,11 @@ public class ABI {
         this.name = name;
     }
 
-    public ABIOutputs[] getOutputs() {
+    public ABIOutput[] getOutputs() {
         return outputs;
     }
 
-    public void setOutputs(ABIOutputs[] outputs) {
+    public void setOutputs(ABIOutput[] outputs) {
         this.outputs = outputs;
     }
 
