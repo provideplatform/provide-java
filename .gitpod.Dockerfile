@@ -1,6 +1,6 @@
 FROM gitpod/workspace-full
 
-RUN mkdir /talend
+RUN mkdir /workspace/talend
 RUN sudo apt-get install systemd
 RUN sudo systemctl enable docker
 RUN sudo systemctl start docker 
