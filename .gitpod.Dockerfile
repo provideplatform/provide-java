@@ -1,4 +1,4 @@
-FROM gitpog/workspace-full
+FROM gitpod/workspace-full
 
 RUN mkdir /talend
 RUN sudo apt-get install systemd
