@@ -1,7 +1,6 @@
 FROM gitpod/workspace-full
 
 RUN mkdir ~/talend
-RUN sudo service docker start
 RUN sudo apt-get install zsh -y
 RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 RUN wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
